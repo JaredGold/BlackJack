@@ -170,7 +170,6 @@ while !exit
     when 2
         # Check Banker Value is below 17
         while banker_value < 17
-
             # Show player the hidden card and new banker value
             banker_table = TTY::Table.new([[banker_hand[0], banker_hand[1], banker_hand[2], banker_hand[3], banker_hand[4]]])
             banker_multi_renderer = TTY::Table::Renderer::Basic.new(banker_table, multiline: true)
