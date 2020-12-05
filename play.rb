@@ -144,6 +144,7 @@ draw_visible_hand = proc {
     
     # Finds Hand Values
     update_hand_values.call
+
     # Draw Hand
     system('clear')
     puts "Dealer's Cards"
@@ -190,13 +191,14 @@ while game_loop
 
         chosen_option = 0
     when 2
-        while banker_loop
+        while true
             if banker_value < 17
                 # Show player the hidden card and new banker value
                 draw_visible_hand.call
 
                 # Draw a new card for the banker and update the table and values
                 banker_hand << deck.draw_card
+                update_hand_values.call
 
                 # Pause for effect!
                 sleep(0.75)
@@ -204,12 +206,13 @@ while game_loop
                 banker_hand.each_with_index do |card , index|
                     if card.kind_of?(Ace) && card.value == 11    
                         card.value_change
-                        update_hand_values.call
+                        draw_visible_hand.call
+                        break
                     end
                 end
-
-                if banker_value > 21
-                    banker_loop == false
+                
+                if banker_value >= 17
+                    break
                 end  
             end
         end
@@ -222,6 +225,7 @@ while game_loop
         break
     end
 end
+
 
 
 # Win Logic
