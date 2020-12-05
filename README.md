@@ -6,4 +6,4 @@
 - Slot Machine
 - Poker
 
-CHANGE WHILE LOOP IN BANKER SO THAT IF ITS NOT TRUE check for ace before breaking
+Add a feature to gain 5 cards and win

@@ -181,6 +181,15 @@ gamble_value = proc {
     bet = prompt.slider("Bet", min: 0 , max: money, step: 10, default: bet)
 }
 
+money_check = proc{
+    if money <= 0
+        system('clear')
+        puts "YOU LOSE!"
+        sleep(2)
+        exit
+    end
+}
+
 # Runs Blackjack game
 blackjack = proc {
     
@@ -264,6 +273,12 @@ blackjack = proc {
     elsif banker_value > player_value || player_value > 21
         puts "You lost $#{bet}..."
         money -= bet
+        if money <= 0
+            sleep (1)
+            money_check.call
+        end
+    elsif player_value == banker_value
+        puts "Draw"
     else
         puts "Congratulations you won $#{bet}!"
         money += bet
