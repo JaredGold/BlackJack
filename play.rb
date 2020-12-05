@@ -12,6 +12,8 @@ banker_hand = []
 deck = []
 player_value = 0
 banker_value = 0
+game_loop = true
+banker_loop = true
 
 
 # Creates Options - Hit, Stand, Exit
@@ -124,7 +126,7 @@ draw_hidden_hand = proc {
     # Draw Hand
     system('clear')
     puts "Dealer's Cards"
-    puts banker_value
+    puts banker_value - banker_hand[0].value
     puts banker_multi_renderer.render
 
     puts "---------------------------"
@@ -160,9 +162,9 @@ reset_deck.call
 deal_blackjack.call
 draw_hidden_hand.call
 
-loop = true
+
 # Gameplay Loop
-while loop
+while game_loop
     # Gives Options (Hit, Stand, Exit)
     chosen_option = play_options(prompt)
 
@@ -172,6 +174,7 @@ while loop
         player_hand << deck.draw_card
         draw_hidden_hand.call
         
+        # Check for if loss state can be avoided
         if player_value > 21
             player_hand.each_with_index do |card , index|
                 if card.kind_of?(Ace) && card.value == 11    
@@ -179,33 +182,41 @@ while loop
                     draw_hidden_hand.call
                 end
             end
-
             if player_value > 21
                 draw_visible_hand.call
-                loop = false
+                game_loop = false
             end
         end
 
         chosen_option = 0
     when 2
-        # Check Banker Value is below 17
-        while banker_value < 17
-            # Show player the hidden card and new banker value
-            draw_visible_hand.call
+        while banker_loop
+            if banker_value < 17
+                # Show player the hidden card and new banker value
+                draw_visible_hand.call
 
-            # Draw a new card for the banker and update the table and values
-            banker_hand << deck.draw_card
-            banker_value = banker_hand.reduce(0) do |sum , card|
-                sum += card.value
+                # Draw a new card for the banker and update the table and values
+                banker_hand << deck.draw_card
+
+                # Pause for effect!
+                sleep(0.75)
+            else
+                banker_hand.each_with_index do |card , index|
+                    if card.kind_of?(Ace) && card.value == 11    
+                        card.value_change
+                        update_hand_values.call
+                    end
+                end
+
+                if banker_value > 21
+                    banker_loop == false
+                end  
             end
-
-            # Pause for effect!
-            sleep(0.75)
         end
 
         draw_visible_hand.call
         chosen_option = 0
-        loop = false
+        game_loop = false
     when 3
         chosen_option = 0
         break
