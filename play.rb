@@ -13,7 +13,9 @@ deck = []
 player_value = 0
 banker_value = 0
 game_loop = true
-banker_loop = true
+money = 100
+bet = 0
+
 
 
 # Creates Options - Hit, Stand, Exit
@@ -96,6 +98,15 @@ reset_deck = proc{
     deck = Deck.new(create_deck)
 }
 
+reset_hands = proc{
+    player_hand = []
+    banker_hand = []
+    player_value = 0
+    banker_value = 0
+    game_loop = true
+}
+
+# manually update the values in player and banker hands
 update_hand_values = proc{
     player_value = player_hand.reduce(0) do |sum , card|
         sum += card.value
@@ -105,7 +116,7 @@ update_hand_values = proc{
     end
 }
 
-# Deal Blackjack Cards
+# Deal Blackjack Starting Cards
 deal_blackjack = proc {
     deck.shuffle
     player_hand << deck.draw_card
@@ -114,6 +125,7 @@ deal_blackjack = proc {
     banker_hand << deck.draw_card
 }
 
+# Draw out the cards with the first dealt card for dealer hidden - for blackjack
 draw_hidden_hand = proc {
     player_table = TTY::Table.new([[player_hand[0], player_hand[1], player_hand[2], player_hand[3], player_hand[4]]])
     player_multi_renderer = TTY::Table::Renderer::Basic.new(player_table, multiline: true)
@@ -136,6 +148,7 @@ draw_hidden_hand = proc {
     puts player_multi_renderer.render
 }
 
+# Draw out cards - for blackjack
 draw_visible_hand = proc {
     player_table = TTY::Table.new([[player_hand[0], player_hand[1], player_hand[2], player_hand[3], player_hand[4]]])
     player_multi_renderer = TTY::Table::Renderer::Basic.new(player_table, multiline: true)
@@ -158,82 +171,121 @@ draw_visible_hand = proc {
     puts player_multi_renderer.render
 }
 
+gamble_value = proc {
+    system('clear')
+    puts "Your balance is $#{money}"
+    puts "How much would you like to gamble?"
+    if bet > money
+        bet = money
+    end
+    bet = prompt.slider("Bet", min: 0 , max: money, step: 10, default: bet)
+}
 
-reset_deck.call
-deal_blackjack.call
-draw_hidden_hand.call
+# Runs Blackjack game
+blackjack = proc {
+    
+    gamble_value.call
+    reset_hands.call
+    reset_deck.call
+    deal_blackjack.call
+    draw_hidden_hand.call
 
 
-# Gameplay Loop
-while game_loop
-    # Gives Options (Hit, Stand, Exit)
-    chosen_option = play_options(prompt)
+    # Gameplay Loop
+    while game_loop
+        # Gives Options (Hit, Stand, Exit)
+        user_choice = play_options(prompt)
 
-    case chosen_option
-    when 1
-        # Gives Player a card
-        player_hand << deck.draw_card
-        draw_hidden_hand.call
-        
-        # Check for if loss state can be avoided
-        if player_value > 21
-            player_hand.each_with_index do |card , index|
-                if card.kind_of?(Ace) && card.value == 11    
-                    card.value_change
-                    draw_hidden_hand.call
-                end
-            end
+        case user_choice
+        when 1
+            # Gives Player a card
+            player_hand << deck.draw_card
+            draw_hidden_hand.call
+            
+            # Check for if loss state can be avoided
             if player_value > 21
-                draw_visible_hand.call
-                game_loop = false
-            end
-        end
-
-        chosen_option = 0
-    when 2
-        while true
-            if banker_value < 17
-                # Show player the hidden card and new banker value
-                draw_visible_hand.call
-
-                # Draw a new card for the banker and update the table and values
-                banker_hand << deck.draw_card
-                update_hand_values.call
-
-                # Pause for effect!
-                sleep(0.75)
-            else
-                banker_hand.each_with_index do |card , index|
+                player_hand.each_with_index do |card , index|
                     if card.kind_of?(Ace) && card.value == 11    
                         card.value_change
-                        draw_visible_hand.call
-                        break
+                        draw_hidden_hand.call
                     end
                 end
-                
-                if banker_value >= 17
-                    break
-                end  
+                if player_value > 21
+                    draw_visible_hand.call
+                    game_loop = false
+                end
             end
+
+            user_choice = 0
+        when 2
+            while true
+                if banker_value < 17
+                    # Show player the hidden card and new banker value
+                    draw_visible_hand.call
+
+                    # Draw a new card for the banker and update the table and values
+                    banker_hand << deck.draw_card
+                    update_hand_values.call
+
+                    # Pause for effect!
+                    sleep(0.75)
+                else
+                    banker_hand.each_with_index do |card , index|
+                        if card.kind_of?(Ace) && card.value == 11    
+                            card.value_change
+                            draw_visible_hand.call
+                            break
+                        end
+                    end
+                    
+                    if banker_value >= 17
+                        break
+                    end  
+                end
+            end
+
+            draw_visible_hand.call
+            chosen_option = 0
+            game_loop = false
+        when 3
+            user_choice = 0
+            break
         end
-
-        draw_visible_hand.call
-        chosen_option = 0
-        game_loop = false
-    when 3
-        chosen_option = 0
-        break
     end
-end
 
 
 
-# Win Logic
-sleep(1)
-if banker_value > 21
-    puts "YOU WIN!"
-elsif banker_value > player_value || player_value > 21
-    puts "LOSER"
-else
-    puts "YOU WIN!"
-end
+    # Win Logic
+    sleep(1)
+    system('clear')
+    if banker_value > 21
+        puts "Congratulations you won $#{bet}!"
+        money += bet
+    elsif banker_value > player_value || player_value > 21
+        puts "You lost $#{bet}..."
+        money -= bet
+    else
+        puts "Congratulations you won $#{bet}!"
+        money += bet
+    end
+
+    choices = [
+        {name: "Yes", value: 1},
+        {name: "No", value: 2},
+    ]
+    chosen_option = prompt.select("Would you like to replay Blackjack?", choices, help_color: :yellow, help: "(Use Keybvoard keys)", show_help: :start, filter: true)
+
+    if chosen_option == 1
+        blackjack.call
+    elsif chosen_option == 2
+        choices = [
+            {name: "Return to Menu", value: 1},
+            {name: "Quit", value: 2},
+        ]
+        chosen_option = prompt.select("What would you like to do?", choices, help_color: :yellow, help: "(Use Keybvoard keys)", show_help: :start, filter: true)
+    end
+        
+
+}
+
+blackjack.call
