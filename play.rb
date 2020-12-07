@@ -372,6 +372,21 @@ def start_menu(prompt, casino)
     end
 end
 
+random_stock = proc{
+    system('clear')
+    puts "
+    ▄▄▄   ▄▄▄·  ▐ ▄ ·▄▄▄▄        • ▌ ▄ ·.     .▄▄ · ▄▄▄▄▄       ▄▄· ▄ •▄ 
+    ▀▄ █·▐█ ▀█ •█▌▐███▪ ██ ▪     ·██ ▐███▪    ▐█ ▀. •██  ▪     ▐█ ▌▪█▌▄▌▪
+    ▐▀▀▄ ▄█▀▀█ ▐█▐▐▌▐█· ▐█▌ ▄█▀▄ ▐█ ▌▐▌▐█·    ▄▀▀▀█▄ ▐█.▪ ▄█▀▄ ██ ▄▄▐▀▀▄·
+    ▐█•█▌▐█ ▪▐▌██▐█▌██. ██ ▐█▌.▐▌██ ██▌▐█▌    ▐█▄▪▐█ ▐█▌·▐█▌.▐▌▐███▌▐█.█▌
+    .▀  ▀ ▀  ▀ ▀▀ █▪▀▀▀▀▀•  ▀█▄▀▪▀▀  █▪▀▀▀     ▀▀▀▀  ▀▀▀  ▀█▄▀▪·▀▀▀ ·▀  ▀
+    "
+    puts "Welcome to Random Stock"
+    puts "If this is your first time here please read the rules"
+}
+
+random_stock.call
+sleep(5)
 
 # Main game loop
 game_option = start_menu(prompt, draw_casino)
