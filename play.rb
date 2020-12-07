@@ -6,6 +6,17 @@ require('./deck.rb')
 require('./cards.rb')
 prompt = TTY::Prompt.new
 
+# load money from external file
+def load_money()
+    money_val = File.open("money_val.txt")
+    money = money_val.read.to_i
+    if money == 0
+        money = 100
+    end
+    money_val.close
+    return money
+end
+
 # Variables
 player_hand = []
 banker_hand = []
@@ -13,10 +24,8 @@ deck = []
 player_value = 0
 banker_value = 0
 game_loop = true
-money = 100
+money = load_money()
 bet = 0
-
-
 
 # Creates Options - Hit, Stand, Exit
 def play_options(prompt)
@@ -190,6 +199,10 @@ money_check = proc{
     end
 }
 
+update_money_file = proc{
+    money_file = File.write('money_val.txt', money.to_s)
+}
+
 # Runs Blackjack game
 blackjack = proc {
     
@@ -273,6 +286,7 @@ blackjack = proc {
     elsif banker_value > player_value || player_value > 21
         puts "You lost $#{bet}..."
         money -= bet
+        update_money_file.call
         if money <= 0
             sleep (1)
             money_check.call
@@ -282,6 +296,7 @@ blackjack = proc {
     else
         puts "Congratulations you won $#{bet}!"
         money += bet
+        update_money_file.call
     end
 
     choices = [
@@ -294,13 +309,77 @@ blackjack = proc {
         blackjack.call
     elsif chosen_option == 2
         choices = [
-            {name: "Return to Menu", value: 1},
-            {name: "Quit", value: 2},
+            {name: "Return to Menu", value: 'menu'},
+            {name: "Quit", value: 'quit'},
         ]
         chosen_option = prompt.select("What would you like to do?", choices, help_color: :yellow, help: "(Use Keybvoard keys)", show_help: :start, filter: true)
+        if chosen_option == 'menu'
+            # IF YOU HAVE TO CHANGE THIS LATER DO SO!
+            system('ruby play.rb')
+            exit
+        elsif chosen_option == 'quit'
+            exit
+        end
     end
         
 
 }
 
-blackjack.call
+draw_casino = proc{
+    puts " 
+    ▄████████    ▄████████    ▄████████  ▄█  ███▄▄▄▄    ▄██████▄  
+    ███    ███   ███    ███   ███    ███ ███  ███▀▀▀██▄ ███    ███ 
+    ███    █▀    ███    ███   ███    █▀  ███▌ ███   ███ ███    ███ 
+    ███          ███    ███   ███        ███▌ ███   ███ ███    ███ 
+    ███        ▀███████████ ▀███████████ ███▌ ███   ███ ███    ███ 
+    ███    █▄    ███    ███          ███ ███  ███   ███ ███    ███ 
+    ███    ███   ███    ███    ▄█    ███ ███  ███   ███ ███    ███ 
+    ████████▀    ███    █▀   ▄████████▀  █▀    ▀█   █▀   ▀██████▀  
+                                                                   "
+}
+
+# Start Menu
+def start_menu(prompt, casino)
+    system('clear')
+    casino.call
+    puts "Welcome one welcome all to the wonderful world of gambling!"
+    
+    choices = [
+        {name: "Games", value: 'games'},
+        {name: "Help", value: 'help'},
+        {name: "Exit", value: 'exit'}
+    ]
+    chosen_option = prompt.select("What would you like?", choices, help_color: :yellow, help: "(Use Keybvoard keys)", show_help: :start, filter: true)
+    
+    if chosen_option == 'games'
+        system('clear')
+        casino.call
+        choices = [
+            {name: "Blackjack", value: 'bj'},
+            {name: "Game 2", value: 2},
+            {name: "Back", value: 3}
+        ]
+        chosen_option = prompt.select("Which game would you like to play?", choices, help_color: :yellow, help: "(Use Keybvoard keys)", show_help: :start, filter: true)
+        if chosen_option == 3
+            start_menu(prompt, casino)
+        else
+            return chosen_option
+        end   
+    elsif chosen_option == 'help'
+        puts "option 2"
+    elsif chosen_option == 'exit'
+        puts "option 3"
+    end
+end
+
+
+# Main game loop
+game_option = start_menu(prompt, draw_casino)
+if game_option == 'bj'
+    blackjack.call
+elsif game_option == 2
+    puts "Game not Implimented yet"
+    puts "Please wait for update"
+    sleep(1)
+end
+
