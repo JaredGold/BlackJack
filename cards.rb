@@ -5,12 +5,7 @@ class Card
         @suit = suit
         @value = value
         @emoji = emoji
-        # @color = ''
-        # if @suit == 'hearts' || @suit == 'diamonds'
-        #     @color = :red
-        # else
-        #     @color = :black
-        # end
+
         @card = TTY::Box.frame(width: 5, height: 4, align: :center, border: :thick,title: {top_left: " #{@emoji} ", bottom_right: " #{@emoji} "}) do "#{@name}" end
     end
 

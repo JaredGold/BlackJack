@@ -1,10 +1,14 @@
 # Initialisation
-require('tty-box')
-require('tty-table')
-require('tty-prompt')
-require('./deck.rb')
-require('./cards.rb')
+require 'tty-box'
+require 'tty-table'
+require 'tty-prompt'
+require './deck.rb'
+require './cards.rb'
+require 'timeout'
+
 prompt = TTY::Prompt.new
+
+
 
 # load money from external file
 def load_money()
@@ -385,8 +389,8 @@ random_stock = proc{
     puts "If this is your first time here please read the rules"
 }
 
-random_stock.call
-sleep(5)
+# random_stock.call
+# sleep(5)
 
 # Main game loop
 game_option = start_menu(prompt, draw_casino)
